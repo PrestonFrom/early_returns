@@ -5,7 +5,7 @@ edition = "2021"
 description = "Macros to make early returns easier to work with in Rust"
 license = "Apache License 2.0"
 homepage = "https://github.com/PrestonFrom/early_returns"
-readme = "https://github.com/PrestonFrom/early_returns/blob/main/README.md"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
