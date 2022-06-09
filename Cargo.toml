@@ -1,6 +1,6 @@
 [package]
 name = "early_returns"
-version = "0.1.0"
+version = "0.2.1"
 edition = "2021"
 description = "Macros to make early returns easier to work with in Rust"
 license = "Apache-2.0"
