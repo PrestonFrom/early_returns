@@ -1,19 +1,32 @@
 # early_returns
-Macros to make early returns easier to work with in Rust
+Macros to make early returns and loop breaks/continues easier to work with in Rust
 
 ### Motivation
-When working with optional values or result values, it can often be beneficial to code readability to use early returns to "bail out" if an option is not engaged (i.e. if it is `None`). However, if the function's return type is the unit type, the `?` operator cannot be used, which can lead to overly-verbose constructs like nested if-let blocks.
+When working with optional values or result values, it can often be beneficial to code readability to use early returns to "bail out" if an option is not engaged (e.g. if it is `None`). However, if the function's return type is the unit type, the `?` operator cannot be used, which can lead to overly-verbose constructs like nested if-let blocks.
+
+Additionally, the `?` operator cannot be used in loops, where it might be useful to break or continue if an option is `None` or a result is `Err`.
 
 ### What this crate provides
-This crate hopes to make working with such types simpler by providing macros that will get the underlying type or return from the function immediately.
+This crate hopes to make working with such types simpler by providing macros that will get the underlying type or return from the function or break from/continue in loops immediately.
 
-The macros are:
+The macros for Option are:
 * `some_or_return`
-  * Will "extract" a Some value if available *or* return from the current function.
+  * Will "extract" a `Some` value if available *or* return from the current function.
+* `some_or_break`
+  * Will "extract" a `Some` value if available *or* break from either the current loop (if no loop lifetime is specified) or the specified loop (if a loop lifetime is specified).
+* `some_or_continue`
+  * Will "extract" a `Some` value if available *or* continue either the current loop (if no loop lifetime is specified) or the specified loop (if a loop lifetime is specified).
+
+The macros for Result are:
 * `ok_or_return`
-  * Will "extract" an Ok value if available *or* return from the current function.
+  * Will "extract" an `Ok` value if available *or* return from the current function.
+* `ok_or_break`
+  * Will "extract" an `Ok` value if available *or* break from either the current loop (if no loop lifetime is specified) or the specified loop (if a loop lifetime is specified).
+* `ok_or_continue`
+  * Will "extract" an `Ok` value if available *or* continue either the current loop (if no loop lifetime is specified) or the specified loop (if a loop lifetime is specified).
 
 ### Examples
+#### Early return from a function 
 The motivating example is something like this:
 ```rust
 fn print_if_all_available_nested(a: Option<i32>, b: Option<i32>, c: Result<i32, ()>) {
@@ -59,5 +72,31 @@ fn print_if_all_available_macro(a: Option<i32>, b: Option<i32>, c: Result<i32, (
     let c = ok_or_return!(c);
 
     println!("{a} + {b} + {c} = {}", a + b + c);
+}
+```
+
+#### Continuing in a loop
+Similarly, there are macros that can be used to break or continue in loops. For example, this:
+```rust
+fn do_something_with_vec_of_optionals(values: &Vec<Option<i32>>) {
+  for value in &values {
+    let value = if let Some(value) = value {
+      value
+    } else {
+      continue;
+    };
+    something(value);
+  }
+}
+```
+
+can be reduced to this:
+
+```rust
+fn do_something_with_vec_of_optionals(values: &Vec<Option<i32>>) {
+  for value in values {
+    let value = some_or_continue!(value);
+    something(value);
+  }
 }
 ```

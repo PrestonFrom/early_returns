@@ -1,9 +1,10 @@
 /// Simple macro to either get the value from an Option type or return from the current function.
-/// Usage:
+/// Example:
 /// ```
 /// use early_returns::some_or_return;
 /// fn do_something_with_option(i: Option<i32>) {
 ///     let i = some_or_return!(i);
+///     println!("{i}");
 /// }
 /// ```
 #[macro_export]
@@ -13,6 +14,82 @@ macro_rules! some_or_return {
             f
         } else {
             return;
+        }
+    }};
+}
+
+/// Simple macro to either get the value from an Option type or break out of a loop. If a loop
+/// lifetime is specified, that loop will be exited, otherwise the immediate loop is exited.
+/// Example:
+/// ```
+/// use early_returns::some_or_break;
+/// fn do_something_with_option(vals: &Vec<Option<i32>>) {
+///     for val in vals {
+///         let val = some_or_break!(val);
+///         println!("{}", val);
+///     }
+///
+///     'l: for val in vals {
+///         for i in 0..5 {
+///             let val = some_or_break!(val, 'l);
+///             println!("{}", val + i);
+///         }
+///     }
+/// }
+/// ```
+#[macro_export]
+macro_rules! some_or_break {
+    ($from:ident) => {{
+        if let Some(f) = $from {
+            f
+        } else {
+            break;
+        }
+    }};
+
+    ($from:ident, $lt:lifetime) => {{
+        if let Some(f) = $from {
+            f
+        } else {
+            break $lt;
+        }
+    }};
+}
+
+/// Simple macro to either get the value from an Option type or continue in a loop. If a loop lifetime
+/// is specified, that loop will be "continued", otherwise the immediate loop is "continued".
+/// Example:
+/// ```
+/// use early_returns::some_or_continue;
+/// fn do_something_with_option(vals: &Vec<Option<i32>>) {
+///     for val in vals {
+///         let val = some_or_continue!(val);
+///         println!("{}", val);
+///     }
+///
+///     'l: for val in vals {
+///         for i in 0..5 {
+///             let val = some_or_continue!(val, 'l);
+///             println!("{}", val + i);
+///         }
+///     }
+/// }
+/// ```
+#[macro_export]
+macro_rules! some_or_continue {
+    ($from:ident) => {{
+        if let Some(f) = $from {
+            f
+        } else {
+            continue;
+        }
+    }};
+
+    ($from:ident, $lt:lifetime) => {{
+        if let Some(f) = $from {
+            f
+        } else {
+            continue $lt;
         }
     }};
 }
@@ -32,6 +109,80 @@ macro_rules! ok_or_return {
             f
         } else {
             return;
+        }
+    }};
+}
+
+/// Simple macro to either get the Ok value from a Result type or break out of a loop. If a loop
+/// lifetime is specified, that loop will be exited, otherwise the immediate loop is exited.
+/// Example:
+/// ```
+/// use early_returns::ok_or_break;
+/// fn do_something_with_option(vals: &Vec<Result<i32, ()>>) {
+///     for val in vals {
+///         let val = ok_or_break!(val);
+///         println!("{}", val);
+///     }
+///
+///     'l: for val in vals {
+///         for i in 0..5 {
+///             let val = ok_or_break!(val, 'l);
+///             println!("{}", val + i);
+///         }
+///     }
+/// }
+/// ```
+#[macro_export]
+macro_rules! ok_or_break {
+    ($from:ident) => {{
+        if let Ok(f) = $from {
+            f
+        } else {
+            break;
+        }
+    }};
+    ($from:ident, $lt:lifetime) => {{
+        if let Ok(f) = $from {
+            f
+        } else {
+            break $lt;
+        }
+    }};
+}
+
+/// Simple macro to either get the value from a Result type or continue in a loop. If a loop lifetime
+/// is specified, that loop will be "continued", otherwise the immediate loop is "continued".
+/// Example:
+/// ```
+/// use early_returns::ok_or_continue;
+/// fn do_something_with_option(vals: &Vec<Result<i32, ()>>) {
+///     for val in vals {
+///         let val = ok_or_continue!(val);
+///         println!("{}", val);
+///     }
+///
+///     'l: for val in vals {
+///         for i in 0..5 {
+///             let val = ok_or_continue!(val, 'l);
+///             println!("{}", val + i);
+///         }
+///     }
+/// }
+/// ```
+#[macro_export]
+macro_rules! ok_or_continue {
+    ($from:ident) => {{
+        if let Ok(f) = $from {
+            f
+        } else {
+            continue;
+        }
+    }};
+    ($from:ident, $lt:lifetime) => {{
+        if let Ok(f) = $from {
+            f
+        } else {
+            continue $lt;
         }
     }};
 }
@@ -76,6 +227,80 @@ mod test {
             let value = ok_or_return!(value);
             self.value += value;
         }
+
+        fn increment_with_optional_with_break(&mut self, values: Vec<Option<i32>>) {
+            for value in values {
+                let value = some_or_break!(value);
+                self.value += value;
+            }
+        }
+
+        fn increment_with_optional_with_break_with_lifetime(&mut self, values: Vec<Option<i32>>) {
+            'l: for value in values {
+                self.value += 1;
+                for _i in 0..1 {
+                    let value = some_or_break!(value, 'l);
+                    self.value += value;
+                }
+            }
+        }
+
+        fn increment_with_optional_with_continue(&mut self, values: Vec<Option<i32>>) {
+            for value in values {
+                let value = some_or_continue!(value);
+                self.value += value;
+            }
+        }
+
+        fn increment_with_optional_with_continue_with_lifetime(
+            &mut self,
+            values: Vec<Option<i32>>,
+        ) {
+            'l: for value in values {
+                self.value += 1;
+                for _i in 0..1 {
+                    let value = some_or_continue!(value, 'l);
+                    self.value += value;
+                }
+            }
+        }
+
+        fn increment_with_result_with_break(&mut self, values: Vec<Result<i32, ()>>) {
+            for value in values {
+                let value = ok_or_break!(value);
+                self.value += value;
+            }
+        }
+
+        fn increment_with_result_with_break_with_lifetime(&mut self, values: Vec<Result<i32, ()>>) {
+            'l: for value in values {
+                self.value += 1;
+                for _i in 0..1 {
+                    let value = ok_or_break!(value, 'l);
+                    self.value += value;
+                }
+            }
+        }
+
+        fn increment_with_result_with_continue(&mut self, values: Vec<Result<i32, ()>>) {
+            for value in values {
+                let value = ok_or_continue!(value);
+                self.value += value;
+            }
+        }
+
+        fn increment_with_result_with_continue_with_lifetime(
+            &mut self,
+            values: Vec<Result<i32, ()>>,
+        ) {
+            'l: for value in values {
+                self.value += 1;
+                for _i in 0..1 {
+                    let value = ok_or_continue!(value, 'l);
+                    self.value += value;
+                }
+            }
+        }
     }
 
     #[test]
@@ -106,7 +331,6 @@ mod test {
         assert_eq!(tester.value, 1);
     }
 
-
     #[test]
     fn should_return_early_with_unengaged_optional_with_ref() {
         let mut tester = Tester::new();
@@ -135,7 +359,6 @@ mod test {
         assert_eq!(tester.value, 1);
     }
 
-
     #[test]
     fn should_return_early_with_ref_to_unengaged_optional() {
         let mut tester = Tester::new();
@@ -162,6 +385,62 @@ mod test {
         let mut tester = Tester::new();
         tester.increment_with_ref_to_result(&Ok(1));
         assert_eq!(tester.value, 1);
+    }
+
+    #[test]
+    fn should_break_with_unengaged_optional() {
+        let mut tester = Tester::new();
+        tester.increment_with_optional_with_break(vec![None, Some(1)]);
+        assert_eq!(tester.value, 0);
+    }
+
+    #[test]
+    fn should_break_with_unengaged_optional_with_lifetime() {
+        let mut tester = Tester::new();
+        tester.increment_with_optional_with_break_with_lifetime(vec![None, Some(1)]);
+        assert_eq!(tester.value, 1);
+    }
+
+    #[test]
+    fn should_continue_with_unengaged_optional() {
+        let mut tester = Tester::new();
+        tester.increment_with_optional_with_continue(vec![None, Some(1)]);
+        assert_eq!(tester.value, 1);
+    }
+
+    #[test]
+    fn should_continue_with_unengaged_optional_with_lifetime() {
+        let mut tester = Tester::new();
+        tester.increment_with_optional_with_continue_with_lifetime(vec![None, Some(1)]);
+        assert_eq!(tester.value, 3);
+    }
+
+    #[test]
+    fn should_break_with_err_result() {
+        let mut tester = Tester::new();
+        tester.increment_with_result_with_break(vec![Err(()), Ok(1)]);
+        assert_eq!(tester.value, 0);
+    }
+
+    #[test]
+    fn should_break_with_err_result_with_lifetime() {
+        let mut tester = Tester::new();
+        tester.increment_with_result_with_break_with_lifetime(vec![Err(()), Ok(1)]);
+        assert_eq!(tester.value, 1);
+    }
+
+    #[test]
+    fn should_continue_with_err_result() {
+        let mut tester = Tester::new();
+        tester.increment_with_result_with_continue(vec![Err(()), Ok(1)]);
+        assert_eq!(tester.value, 1);
+    }
+
+    #[test]
+    fn should_continue_with_err_result_with_lifetime() {
+        let mut tester = Tester::new();
+        tester.increment_with_result_with_continue_with_lifetime(vec![Err(()), Ok(1)]);
+        assert_eq!(tester.value, 3);
     }
 
     fn print_if_all_available_nested(a: Option<i32>, b: Option<i32>, c: Result<i32, ()>) {
@@ -204,6 +483,15 @@ mod test {
         println!("{a} + {b} + {c} = {}", a + b + c);
     }
 
+    fn something(_v: &i32) {}
+
+    fn do_something_with_vec_of_optionals(values: &Vec<Option<i32>>) {
+        for value in values {
+            let value = some_or_continue!(value);
+            something(value);
+        }
+    }
+
     #[test]
     fn doc_examples_compile() {
         print_if_all_available_nested(Some(1), Some(2), Ok(3));
@@ -213,5 +501,7 @@ mod test {
         print_if_all_available_nested(None, None, Err(()));
         print_if_all_available_verbose(None, None, Err(()));
         print_if_all_available_macro(None, None, Err(()));
+
+        do_something_with_vec_of_optionals(&vec![Some(1), Some(2), None, Some(3)]);
     }
 }
