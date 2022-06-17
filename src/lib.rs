@@ -9,8 +9,9 @@
 /// ```
 #[macro_export]
 macro_rules! some_or_return {
-    ($from:ident) => {{
+    ($from:expr) => {{
         if let Some(f) = $from {
+            println!("expr");
             f
         } else {
             return;
@@ -39,7 +40,7 @@ macro_rules! some_or_return {
 /// ```
 #[macro_export]
 macro_rules! some_or_break {
-    ($from:ident) => {{
+    ($from:expr) => {{
         if let Some(f) = $from {
             f
         } else {
@@ -47,7 +48,7 @@ macro_rules! some_or_break {
         }
     }};
 
-    ($from:ident, $lt:lifetime) => {{
+    ($from:expr, $lt:lifetime) => {{
         if let Some(f) = $from {
             f
         } else {
@@ -77,7 +78,7 @@ macro_rules! some_or_break {
 /// ```
 #[macro_export]
 macro_rules! some_or_continue {
-    ($from:ident) => {{
+    ($from:expr) => {{
         if let Some(f) = $from {
             f
         } else {
@@ -85,7 +86,7 @@ macro_rules! some_or_continue {
         }
     }};
 
-    ($from:ident, $lt:lifetime) => {{
+    ($from:expr, $lt:lifetime) => {{
         if let Some(f) = $from {
             f
         } else {
@@ -104,7 +105,7 @@ macro_rules! some_or_continue {
 /// ```
 #[macro_export]
 macro_rules! ok_or_return {
-    ($from:ident) => {{
+    ($from:expr) => {{
         if let Ok(f) = $from {
             f
         } else {
@@ -134,14 +135,14 @@ macro_rules! ok_or_return {
 /// ```
 #[macro_export]
 macro_rules! ok_or_break {
-    ($from:ident) => {{
+    ($from:expr) => {{
         if let Ok(f) = $from {
             f
         } else {
             break;
         }
     }};
-    ($from:ident, $lt:lifetime) => {{
+    ($from:expr, $lt:lifetime) => {{
         if let Ok(f) = $from {
             f
         } else {
@@ -171,14 +172,14 @@ macro_rules! ok_or_break {
 /// ```
 #[macro_export]
 macro_rules! ok_or_continue {
-    ($from:ident) => {{
+    ($from:expr) => {{
         if let Ok(f) = $from {
             f
         } else {
             continue;
         }
     }};
-    ($from:ident, $lt:lifetime) => {{
+    ($from:expr, $lt:lifetime) => {{
         if let Ok(f) = $from {
             f
         } else {
@@ -300,6 +301,24 @@ mod test {
                     self.value += value;
                 }
             }
+        }
+
+        fn increment_with_optional_by_ref(
+            &mut self,
+            values: Option<i32>
+        ) {
+
+            let i: &i32 = some_or_return!(values.as_ref());
+            self.value += i;
+        }
+
+        fn increment_with_optional_from_fn_result<F: Fn() -> Option<i32>>(
+            &mut self,
+            value_getter: F
+        ) {
+
+            let i: i32 = some_or_return!(value_getter());
+            self.value += i;
         }
     }
 
@@ -441,6 +460,27 @@ mod test {
         let mut tester = Tester::new();
         tester.increment_with_result_with_continue_with_lifetime(vec![Err(()), Ok(1)]);
         assert_eq!(tester.value, 3);
+    }
+
+    #[test]
+    fn should_get_optional_from_reference() {
+        let mut tester = Tester::new();
+        tester.increment_with_optional_by_ref(Some(1));
+        assert_eq!(tester.value, 1);
+        tester.increment_with_optional_by_ref(None);
+        assert_eq!(tester.value, 1);
+    }
+
+    #[test]
+    fn should_get_optional_from_function_result() {
+        let mut tester = Tester::new();
+        tester.increment_with_optional_from_fn_result(|| Some(1));
+        assert_eq!(tester.value, 1);
+        tester.increment_with_optional_from_fn_result(|| None);
+        assert_eq!(tester.value, 1);
+        let a = 1;
+        tester.increment_with_optional_from_fn_result(|| Some(a));
+        assert_eq!(tester.value, 2);
     }
 
     fn print_if_all_available_nested(a: Option<i32>, b: Option<i32>, c: Result<i32, ()>) {
