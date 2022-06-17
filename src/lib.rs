@@ -11,7 +11,6 @@
 macro_rules! some_or_return {
     ($from:expr) => {{
         if let Some(f) = $from {
-            println!("expr");
             f
         } else {
             return;
