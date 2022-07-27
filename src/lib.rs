@@ -1,5 +1,7 @@
-/// Simple macro to either get the value from an Option type or return from the current function.
-/// Example:
+#![doc = include_str!("../README.md")]
+
+/// Either get the value from an Option type or return from the current function.
+/// A default return value can be provided.
 /// ```
 /// use early_returns::some_or_return;
 /// fn do_something_with_option(i: Option<i32>) {
@@ -16,11 +18,17 @@ macro_rules! some_or_return {
             return;
         }
     }};
+    ($from:expr, $default_result:expr) => {{
+        if let Some(f) = $from {
+            f
+        } else {
+            return $default_result;
+        }
+    }};
 }
 
-/// Simple macro to either get the value from an Option type or break out of a loop. If a loop
-/// lifetime is specified, that loop will be exited, otherwise the immediate loop is exited.
-/// Example:
+/// Either get the value from an Option type or break out of a loop. If a loop lifetime is
+/// specified, that loop will be exited, otherwise the immediate loop is exited.
 /// ```
 /// use early_returns::some_or_break;
 /// fn do_something_with_option(vals: &Vec<Option<i32>>) {
@@ -56,9 +64,8 @@ macro_rules! some_or_break {
     }};
 }
 
-/// Simple macro to either get the value from an Option type or continue in a loop. If a loop lifetime
-/// is specified, that loop will be "continued", otherwise the immediate loop is "continued".
-/// Example:
+/// Either get the value from an Option type or continue in a loop. If a loop lifetime is specified,
+/// that loop will be "continued", otherwise the immediate loop is "continued".
 /// ```
 /// use early_returns::some_or_continue;
 /// fn do_something_with_option(vals: &Vec<Option<i32>>) {
@@ -94,8 +101,8 @@ macro_rules! some_or_continue {
     }};
 }
 
-/// Simple macro to either get the value from a Result type or return from the current function.
-/// Usage:
+/// Either get the value from a Result type or return from the current function.
+/// A default return value can be provided.
 /// ```
 /// use early_returns::{ok_or_return, some_or_return};
 /// fn do_something_with_result(i: Result<i32, ()>) {
@@ -111,11 +118,18 @@ macro_rules! ok_or_return {
             return;
         }
     }};
+
+    ($from:expr, $default_result:expr) => {{
+        if let Ok(f) = $from {
+            f
+        } else {
+            return $default_result;
+        }
+    }};
 }
 
-/// Simple macro to either get the Ok value from a Result type or break out of a loop. If a loop
-/// lifetime is specified, that loop will be exited, otherwise the immediate loop is exited.
-/// Example:
+/// Either get the Ok value from a Result type or break out of a loop. If a loop lifetime is
+/// specified, that loop will be exited, otherwise the immediate loop is exited.
 /// ```
 /// use early_returns::ok_or_break;
 /// fn do_something_with_option(vals: &Vec<Result<i32, ()>>) {
@@ -150,9 +164,8 @@ macro_rules! ok_or_break {
     }};
 }
 
-/// Simple macro to either get the value from a Result type or continue in a loop. If a loop lifetime
-/// is specified, that loop will be "continued", otherwise the immediate loop is "continued".
-/// Example:
+/// Either get the value from a Result type or continue in a loop. If a loop lifetime is specified,
+/// that loop will be "continued", otherwise the immediate loop is "continued".
 /// ```
 /// use early_returns::ok_or_continue;
 /// fn do_something_with_option(vals: &Vec<Result<i32, ()>>) {
@@ -482,65 +495,34 @@ mod test {
         assert_eq!(tester.value, 2);
     }
 
-    fn print_if_all_available_nested(a: Option<i32>, b: Option<i32>, c: Result<i32, ()>) {
-        if let Some(a) = a {
-            if let Some(b) = b {
-                if let Ok(c) = c {
-                    println!("{a} + {b} + {c} = {}", a + b + c);
-                }
-            }
-        }
+    #[derive(Debug, Eq, PartialEq)]
+    struct MeaningOfLifeAnd {
+        value: i32
     }
 
-    fn print_if_all_available_verbose(a: Option<i32>, b: Option<i32>, c: Result<i32, ()>) {
-        let a = if let Some(a) = a {
-            a
-        } else {
-            return;
-        };
-
-        let b = if let Some(b) = b {
-            b
-        } else {
-            return;
-        };
-
-        let c = if let Ok(c) = c {
-            c
-        } else {
-            return;
-        };
-
-        println!("{a} + {b} + {c} = {}", a + b + c);
-    }
-
-    fn print_if_all_available_macro(a: Option<i32>, b: Option<i32>, c: Result<i32, ()>) {
-        let a = some_or_return!(a);
-        let b = some_or_return!(b);
-        let c = ok_or_return!(c);
-
-        println!("{a} + {b} + {c} = {}", a + b + c);
-    }
-
-    fn something(_v: &i32) {}
-
-    fn do_something_with_vec_of_optionals(values: &Vec<Option<i32>>) {
-        for value in values {
-            let value = some_or_continue!(value);
-            something(value);
+    fn try_some_or_return_with_default(val: Option<i32>) -> MeaningOfLifeAnd {
+        let val = some_or_return!(val, MeaningOfLifeAnd { value: 42 });
+        MeaningOfLifeAnd {
+            value: val + 42
         }
     }
 
     #[test]
-    fn doc_examples_compile() {
-        print_if_all_available_nested(Some(1), Some(2), Ok(3));
-        print_if_all_available_verbose(Some(1), Some(2), Ok(3));
-        print_if_all_available_macro(Some(1), Some(2), Ok(3));
+    fn should_return_default_when_none() {
+        assert_eq!(try_some_or_return_with_default(Some(1)), MeaningOfLifeAnd { value: 43 });
+        assert_eq!(try_some_or_return_with_default(None), MeaningOfLifeAnd { value: 42 });
+    }
 
-        print_if_all_available_nested(None, None, Err(()));
-        print_if_all_available_verbose(None, None, Err(()));
-        print_if_all_available_macro(None, None, Err(()));
+    fn try_ok_or_return_with_default(val: Result<i32, ()>) -> MeaningOfLifeAnd {
+        let val = ok_or_return!(val, MeaningOfLifeAnd { value: 42 });
+        MeaningOfLifeAnd {
+            value: val + 42
+        }
+    }
 
-        do_something_with_vec_of_optionals(&vec![Some(1), Some(2), None, Some(3)]);
+    #[test]
+    fn should_return_default_when_err() {
+        assert_eq!(try_ok_or_return_with_default(Ok(1)), MeaningOfLifeAnd { value: 43 });
+        assert_eq!(try_ok_or_return_with_default(Err(())), MeaningOfLifeAnd { value: 42 });
     }
 }
