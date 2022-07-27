@@ -66,7 +66,7 @@ fn print_if_all_available_verbose(a: Option<i32>, b: Option<i32>, c: Result<i32,
 
 This crate provides macros to reduce this boilerplate, so the above can be replaced with:
 ```rust
-use early_returns::{some_or_continue, ok_or_return};
+use early_returns::{some_or_return, ok_or_return};
 fn print_if_all_available_macro(a: Option<i32>, b: Option<i32>, c: Result<i32, ()>) {
     let a = some_or_return!(a);
     let b = some_or_return!(b);
