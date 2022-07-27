@@ -1,6 +1,6 @@
 name: early_returns
 
-on: [push, pull_request]
+on: [push]
 
 env:
   CARGO_TERM_COLOR: always
@@ -26,4 +26,5 @@ jobs:
       - name: Doc tests
         uses: actions-rs/cargo@v1
         with:
-          command: test --doc
+          command: test
+          args: --doc
