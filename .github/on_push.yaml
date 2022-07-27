@@ -1,0 +1,26 @@
+name: early_returns
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      - name: Doc tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test --doc

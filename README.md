@@ -66,6 +66,7 @@ fn print_if_all_available_verbose(a: Option<i32>, b: Option<i32>, c: Result<i32,
 
 This crate provides macros to reduce this boilerplate, so the above can be replaced with:
 ```rust
+use early_returns::{some_or_continue, ok_or_return};
 fn print_if_all_available_macro(a: Option<i32>, b: Option<i32>, c: Result<i32, ()>) {
     let a = some_or_return!(a);
     let b = some_or_return!(b);
@@ -78,8 +79,10 @@ fn print_if_all_available_macro(a: Option<i32>, b: Option<i32>, c: Result<i32, (
 #### Continuing in a loop
 Similarly, there are macros that can be used to break or continue in loops. For example, this:
 ```rust
+fn something(_v: &i32) {}
+
 fn do_something_with_vec_of_optionals(values: &Vec<Option<i32>>) {
-  for value in &values {
+  for value in values.iter() {
     let value = if let Some(value) = value {
       value
     } else {
@@ -93,8 +96,12 @@ fn do_something_with_vec_of_optionals(values: &Vec<Option<i32>>) {
 can be reduced to this:
 
 ```rust
+use early_returns::some_or_continue;
+
+fn something(_v: &i32) {}
+
 fn do_something_with_vec_of_optionals(values: &Vec<Option<i32>>) {
-  for value in values {
+  for value in values.iter() {
     let value = some_or_continue!(value);
     something(value);
   }
