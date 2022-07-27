@@ -2,16 +2,38 @@
 Macros to make early returns and loop breaks/continues easier to work with in Rust
 
 ### Motivation
-When working with optional values or result values, it can often be beneficial to code readability to use early returns to "bail out" if an option is not engaged (e.g. if it is `None`). However, if the function's return type is the unit type, the `?` operator cannot be used, which can lead to overly-verbose constructs like nested if-let blocks.
+
+When working with Option or Result values, it can often be beneficial to code readability to use early returns to "bail out" if an option is not engaged (e.g. if it is `None` or an error). However, if the function's return type is the unit type, the `?` operator cannot be used, which can lead to overly-verbose constructs like nested if-let blocks.
 
 Additionally, the `?` operator cannot be used in loops, where it might be useful to break or continue if an option is `None` or a result is `Err`.
+
+#### Are early returns actually good?
+
+In my opinion, yes, but there certainly seems to be a lot of debate around this!
+
+Very briefly, I like early returns because:
+1. It makes the requirements/preconditions obvious to readers up front.
+   1. This seems like it should reduce cognitive overhead and makes it easier for readers to follow the core logic.
+   2. Ideally, this helps with "chunking", so readers can look at the flow in discrete parts.
+2. It reduces excessive indentation.
+   1. This is probably a purely personal preference, but as code indentations grow larger, I find it more difficult to follow.
+
+#### Should you actually use this?
+
+Potentially this won't be very useful for much longer -- the [`let-else` RFC](https://github.com/rust-lang/rust/issues/87335) looks like it will implement a language feature to accomplish everything the macros here provide. Until then, this might be useful for you!
+
+Personally, I would like the `?` operator to work for the unit type.
+
+#### Why shouldn't you use this?
+
+It's potentially very confusing the first time someone sees one of these macros -- you either need to trust the name or look at the actual macros to see that the return/break/continue. When introducing them to an established code base, you run the risk of confusing others, so if you are thinking about adding them, definitely talk to your team first.
 
 ### What this crate provides
 This crate hopes to make working with such types simpler by providing macros that will get the underlying type or return from the function or break from/continue in loops immediately.
 
 The macros for Option are:
 * `some_or_return`
-  * Will "extract" a `Some` value if available *or* return from the current function.
+  * Will "extract" a `Some` value if available *or* return from the current function. (Can also return a default value.)
 * `some_or_break`
   * Will "extract" a `Some` value if available *or* break from either the current loop (if no loop lifetime is specified) or the specified loop (if a loop lifetime is specified).
 * `some_or_continue`
@@ -19,7 +41,7 @@ The macros for Option are:
 
 The macros for Result are:
 * `ok_or_return`
-  * Will "extract" an `Ok` value if available *or* return from the current function.
+  * Will "extract" an `Ok` value if available *or* return from the current function. (Can also return a default value.)
 * `ok_or_break`
   * Will "extract" an `Ok` value if available *or* break from either the current loop (if no loop lifetime is specified) or the specified loop (if a loop lifetime is specified).
 * `ok_or_continue`

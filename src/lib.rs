@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 
-/// Simple macro to either get the value from an Option type or return from the current function.
+/// Either get the value from an Option type or return from the current function.
+/// A default return value can be provided.
 /// ```
 /// use early_returns::some_or_return;
 /// fn do_something_with_option(i: Option<i32>) {
@@ -26,8 +27,8 @@ macro_rules! some_or_return {
     }};
 }
 
-/// Simple macro to either get the value from an Option type or break out of a loop. If a loop
-/// lifetime is specified, that loop will be exited, otherwise the immediate loop is exited.
+/// Either get the value from an Option type or break out of a loop. If a loop lifetime is
+/// specified, that loop will be exited, otherwise the immediate loop is exited.
 /// ```
 /// use early_returns::some_or_break;
 /// fn do_something_with_option(vals: &Vec<Option<i32>>) {
@@ -63,8 +64,8 @@ macro_rules! some_or_break {
     }};
 }
 
-/// Simple macro to either get the value from an Option type or continue in a loop. If a loop lifetime
-/// is specified, that loop will be "continued", otherwise the immediate loop is "continued".
+/// Either get the value from an Option type or continue in a loop. If a loop lifetime is specified,
+/// that loop will be "continued", otherwise the immediate loop is "continued".
 /// ```
 /// use early_returns::some_or_continue;
 /// fn do_something_with_option(vals: &Vec<Option<i32>>) {
@@ -100,7 +101,8 @@ macro_rules! some_or_continue {
     }};
 }
 
-/// Simple macro to either get the value from a Result type or return from the current function.
+/// Either get the value from a Result type or return from the current function.
+/// A default return value can be provided.
 /// ```
 /// use early_returns::{ok_or_return, some_or_return};
 /// fn do_something_with_result(i: Result<i32, ()>) {
@@ -126,8 +128,8 @@ macro_rules! ok_or_return {
     }};
 }
 
-/// Simple macro to either get the Ok value from a Result type or break out of a loop. If a loop
-/// lifetime is specified, that loop will be exited, otherwise the immediate loop is exited.
+/// Either get the Ok value from a Result type or break out of a loop. If a loop lifetime is
+/// specified, that loop will be exited, otherwise the immediate loop is exited.
 /// ```
 /// use early_returns::ok_or_break;
 /// fn do_something_with_option(vals: &Vec<Result<i32, ()>>) {
@@ -162,8 +164,8 @@ macro_rules! ok_or_break {
     }};
 }
 
-/// Simple macro to either get the value from a Result type or continue in a loop. If a loop lifetime
-/// is specified, that loop will be "continued", otherwise the immediate loop is "continued".
+/// Either get the value from a Result type or continue in a loop. If a loop lifetime is specified,
+/// that loop will be "continued", otherwise the immediate loop is "continued".
 /// ```
 /// use early_returns::ok_or_continue;
 /// fn do_something_with_option(vals: &Vec<Result<i32, ()>>) {
